@@ -1,10 +1,9 @@
 package com.shanyangcode.userservice.handler;
 
 import com.shanyangcode.userservice.common.ErrorCode;
-import com.shanyangcode.userservice.constant.UserConstant;
 import com.shanyangcode.userservice.exception.BusinessException;
 import com.shanyangcode.userservice.utils.JwtUtil;
-
+import com.shanyangcode.common.constant.CommonConstant;
 import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,10 +27,11 @@ public class JwtHandler implements HandlerInterceptor {
 
         try {
             if (accessToken != null) {
+                //解析token
                 Claims acParse = JwtUtil.parse(accessToken);
                 if (acParse != null) {
                     String userId = acParse.getSubject();
-                    String redisAccessToken = stringRedisTemplate.opsForValue().get(UserConstant.ACCESS_TOKEN_PREFIX + userId);
+                    String redisAccessToken = stringRedisTemplate.opsForValue().get(CommonConstant.ACCESS_TOKEN_PREFIX + userId);
                     if (accessToken.equals(redisAccessToken)) {
                         return true;
                     }
@@ -39,10 +39,11 @@ public class JwtHandler implements HandlerInterceptor {
             }
 
             if (refreshToken != null) {
+                //解析token
                 Claims rfParse = JwtUtil.parse(refreshToken);
                 if (rfParse != null) {
                     String userId = rfParse.getSubject();
-                    String redisRefreshToken = stringRedisTemplate.opsForValue().get(UserConstant.REFRESH_TOKEN_PREFIX + userId);
+                    String redisRefreshToken = stringRedisTemplate.opsForValue().get(CommonConstant.REFRESH_TOKEN_PREFIX + userId);
                     if (refreshToken.equals(redisRefreshToken)) {
                         throw new BusinessException(ErrorCode.TOKEN_EXPIRED); // 触发前端自动刷新
                     }
