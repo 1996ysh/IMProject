@@ -1,7 +1,7 @@
 package com.shanyangcode.userservice.handler;
 
-import com.shanyangcode.userservice.common.ErrorCode;
-import com.shanyangcode.userservice.exception.BusinessException;
+import com.shanyangcode.common.result.ErrorCode;
+import com.shanyangcode.common.exception.BusinessException;
 import com.shanyangcode.userservice.utils.JwtUtil;
 import com.shanyangcode.common.constant.CommonConstant;
 import io.jsonwebtoken.Claims;
@@ -22,7 +22,7 @@ public class JwtHandler implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        String accessToken = request.getHeader("Access-Token");
+        String accessToken = request.getHeader("Authorization");
         String refreshToken = request.getHeader("Refresh-Token");
 
         try {

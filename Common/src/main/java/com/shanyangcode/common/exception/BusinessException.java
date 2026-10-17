@@ -1,11 +1,9 @@
-package com.shanyangcode.aiservice.Exception;
+package com.shanyangcode.common.exception;
 
-
-import com.shanyangcode.aiservice.common.ErrorCode;
+import com.shanyangcode.common.result.ErrorCode;
 
 /**
- * 自定义异常类
- *
+ * 自定义业务异常
  */
 public class BusinessException extends RuntimeException {
 

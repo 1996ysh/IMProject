@@ -23,4 +23,12 @@ public class CommonConstant {
     public static final String KAFKA_MESSAGE_TOPIC_PUSH = "message-topic";
 
     public static final String REDIS_NETTY_URI = "nettyUri";
+    //nacos中服务的名字
+    public static final String DISCOVERY_CLIENT_NAME = "RealTimeService";
+    //netty前缀url
+    public static final String NETTY_SERVICE_URI = "/ws/netty";
+    //minIO中的桶名
+    public static final String BUCKET_NAME = "infinitechat";
+    //过期时间
+    public static final Integer PICTURE_EXPIRE_TIME = 3000;
 }

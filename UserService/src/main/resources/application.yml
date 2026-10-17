@@ -24,9 +24,16 @@ spring:
           auth: true
           starttls:
             enable: true
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:18375
+
 
 
 mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       logic-delete-field: isDelete
@@ -36,3 +43,8 @@ mybatis-plus:
 
 server:
   port: 8104
+
+minio:
+  url: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin

@@ -39,6 +39,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
                 if(channel.isActive()){
                     // 业务消息 → 发 Kafka
+                    //这一步就是从ws发送websoket通信之后用kafka来监听
                     sendMessageKafka(msg, channel);
                 }else{
                     log.warn("channel is inactive");
@@ -75,7 +76,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         messageRequest.setMessageId(snowflake.nextId());
         messageRequest.setCreatedTime(new Date());
 
-        // 消息存储, 存储只存储一次，避免重复消费
+        // 消息存储, 存储只存储一次，避免重复消费  send到store-topic
         kafkaTemplate.send(CommonConstant.KAFKA_MESSAGE_TOPIC_STORE, JSONUtil.toJsonStr(messageRequest)).whenComplete((success, failure) -> {
             if (failure != null) {
                 // 生产者生产失败
@@ -87,7 +88,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
             }
         });
 
-        // 消息推送消息
+        // 消息推送消息  send到message-topic
         kafkaTemplate.send(CommonConstant.KAFKA_MESSAGE_TOPIC_PUSH, messageRequest.getSessionId().toString(), JSONUtil.toJsonStr(messageRequest)).whenComplete((success, failure) -> {
             if (failure != null) {
                 // 生产者生产失败

@@ -11,6 +11,10 @@ spring:
     url: jdbc:mysql://localhost:49152/InfiniteChat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: gK3T9n%q2M@j7Z4
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:18375
 pgvector:
   database: dp
   host: localhost

@@ -13,6 +13,9 @@ spring:
       port: 59000
       password: e65K4t8w2
       timeout: 30000
-
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:18375
 server:
   port: 8103

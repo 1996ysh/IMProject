@@ -1,4 +1,4 @@
-package com.shanyangcode.aiservice.common;
+package com.shanyangcode.common.result;
 
 import java.io.Serializable;
 
@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 /**
  * 通用返回类
- *
  */
 @Data
 @NoArgsConstructor

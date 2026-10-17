@@ -23,7 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
-@RestController
+@RestController("/api/ai")
 @Slf4j
 public class AiChatController {
 

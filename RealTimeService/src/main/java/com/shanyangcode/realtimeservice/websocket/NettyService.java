@@ -42,6 +42,7 @@ public class NettyService {
     public void start() throws InterruptedException {
         run();
     }
+    //handler chain  http编解码->聚合http请求->jwt鉴权+用户绑定->协议升级->60秒读空闲断开->业务处理
     public void run() throws InterruptedException {
         //声明服务线程
         ServerBootstrap serverBootstrap = new ServerBootstrap();

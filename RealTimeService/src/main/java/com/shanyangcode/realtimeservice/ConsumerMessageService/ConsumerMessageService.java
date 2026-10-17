@@ -7,15 +7,18 @@ import com.shanyangcode.Utils.FormatDateUtil;
 import com.shanyangcode.common.constant.SessionTypeConstant;
 import com.shanyangcode.model.dto.MessageRequest;
 import com.shanyangcode.model.vo.MessageResponse;
+import com.shanyangcode.realtimeservice.client.UserServiceClient;
 import com.shanyangcode.realtimeservice.websocket.ChannelManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.net.http.WebSocket;
+import java.util.List;
 
 /**
  *消费消息，然后通过websocket推送给在线用户
@@ -23,7 +26,9 @@ import java.net.http.WebSocket;
 @Service
 @Slf4j
 public class ConsumerMessageService {
-    //监听message-topic
+    @Resource
+    private UserServiceClient userServiceClient;
+    //监听message-topic  实现发送消息
     @KafkaListener(topics = "message-topic", groupId = "infinite-chat-push-group")
     public void consume(String message) {
         System.out.println("收到消息：" + message);
@@ -46,11 +51,17 @@ public class ConsumerMessageService {
         pushMessageToUser(messageResponse, messageRequest.getSenderId());
         //推给接收者
         pushMessageToUser(messageResponse, messageRequest.getReceiverId());
-
     }
 
     public void groupMessage(MessageRequest messageRequest) {
-        // todo
+        //todo  这里的feign接口鉴权问题还没有解决 后续需要优化
+        //获取到该会话所有应该接收的人的id
+        List<Long>receiveUserIds=userServiceClient.getUserIdBySessionId(messageRequest.getSessionId());
+        //构造响应对象
+        MessageResponse messageResponse = createMessageResponse(messageRequest);
+        receiveUserIds.forEach(receiveUserId->{
+            pushMessageToUser(messageResponse, receiveUserId);
+        });
     }
 
     public MessageResponse createMessageResponse(MessageRequest messageRequest) {

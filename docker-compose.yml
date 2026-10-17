@@ -5,6 +5,17 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: gK3T9n%q2M@j7Z4
       MYSQL_DATABASE: InfiniteChat
+    command:
+      - --server-id=1
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --binlog-row-image=FULL
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
@@ -23,3 +34,80 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  nacos:
+    image: nacos/nacos-server:v2.1.0-slim
+    container_name: nacos
+    ports:
+      - "18375:8848"
+      - "19375:9848"
+      - "9849:9849"
+    environment:
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: "gK3T9n%q2M@j7Z4"
+      MYSQL_SERVICE_DB_NAME: nacos
+      MYSQL_SERVICE_DB_PARAM: "allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&characterEncoding=UTF8&serverTimezone=UTC&connectTimeout=10000&socketTimeout=30000&autoReconnect=true&useSSL=false"
+      NACOS_SECURITY_USER: nacos
+      NACOS_SECURITY_PASSWORD: "Xp4#tG7!vQ"
+      PREFER_HOST_MODE: hostname
+      MODE: standalone
+      JVM_XMS: 256m
+      JVM_XMX: 256m
+      TZ: Asia/Shanghai
+    depends_on:
+      - mysql
+
+  minio:
+    image: minio/minio:RELEASE.2025-02-18T16-25-55Z
+    container_name: minio
+    restart: always
+    ports:
+      - "9000:9000"   # S3 API
+      - "9090:9090"   # Web Console
+    environment:
+      # newer MinIO uses ROOT_USER/ROOT_PASSWORD (same as tutorial minioadmin)
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - "${USERPROFILE}/docker/minio/data:/data"
+      - "${USERPROFILE}/docker/minio/config:/root/.minio"
+    command: server /data --console-address ":9090" --address ":9000"
+
+  mysql-canal-init:
+    image: mysql:8.0
+    restart: "no"
+    environment:
+      MYSQL_PWD: "gK3T9n%q2M@j7Z4"
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        mysql -h mysql -uroot --protocol=TCP -e "
+        CREATE USER IF NOT EXISTS 'canal'@'%' IDENTIFIED BY 'canal';
+        ALTER USER 'canal'@'%' IDENTIFIED BY 'canal';
+        GRANT SELECT, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'canal'@'%';
+        FLUSH PRIVILEGES;
+        "
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  canal:
+    image: canal/canal-server:v1.1.7
+    container_name: canal-server
+    restart: always
+    ports:
+      - "11111:11111"
+    environment:
+      canal.instance.mysql.slaveId: "1234"
+      canal.instance.master.address: mysql:3306
+      canal.instance.dbUsername: canal
+      canal.instance.dbPassword: canal
+      canal.instance.connectionCharset: UTF-8
+      canal.instance.filter.regex: ".*\\..*"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mysql-canal-init:
+        condition: service_completed_successfully
