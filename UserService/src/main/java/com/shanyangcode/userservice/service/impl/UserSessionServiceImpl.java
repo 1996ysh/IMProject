@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shanyangcode.userservice.mapper.UserSessionMapper;
 import com.shanyangcode.userservice.model.entity.UserSession;
+import com.shanyangcode.userservice.service.SessionService;
 import com.shanyangcode.userservice.service.UserSessionService;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.stream.Collectors;
 @Service
 public class UserSessionServiceImpl extends ServiceImpl<UserSessionMapper, UserSession>
         implements UserSessionService {
+
     @Override
     public List<Long> getUserIdBySessionId(Long sessionId) {
        QueryWrapper<UserSession> queryWrapper = new QueryWrapper<>();
@@ -22,5 +25,13 @@ public class UserSessionServiceImpl extends ServiceImpl<UserSessionMapper, UserS
            return null;
        }
        return userSessions.stream().map(UserSession::getUserId).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Long> getSessionIdsByUserId(Long userId) {
+        QueryWrapper<UserSession> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        List<UserSession> userSessions = this.list(queryWrapper);
+        return userSessions.stream().map(UserSession::getSessionId).collect(Collectors.toList());
     }
 }

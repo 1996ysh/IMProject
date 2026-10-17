@@ -3,14 +3,15 @@ spring:
     name: OfflineDataService
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:49152/InfiniteChat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:4321/InfiniteChat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: gK3T9n%q2M@j7Z4
+
   data:
     redis:
       database: 2
       host: localhost
-      port: 59000
+      port: 4444
       password: e65K4t8w2
       timeout: 30000
   cloud:
@@ -20,3 +21,17 @@ spring:
 
 server:
   port: 8101
+canal:
+  server:
+    host: localhost
+    port: 1111
+  destination: example
+  username: canal
+  password: canal
+  filter: ".*\\..*"
+  client:
+    heartbeat:
+      interval: 2000    # 心跳间隔(毫秒)
+      timeout: 3000    # 心跳超时(毫秒)
+    socket:
+      timeout: 6000    # socket超时(毫秒)

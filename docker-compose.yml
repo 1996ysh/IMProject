@@ -1,7 +1,8 @@
+# 国内拉取前缀。源失效时设 IMAGE_PREFIX=docker.io/ 走官方 Hub，或改成其他镜像站。
 services:
   mysql:
-    image: mysql:8.0
-    ports: ["49152:3306"]
+    image: ${IMAGE_PREFIX:-docker.1panel.live/}library/mysql:8.0
+    ports: ["4321:3306"]
     environment:
       MYSQL_ROOT_PASSWORD: gK3T9n%q2M@j7Z4
       MYSQL_DATABASE: InfiniteChat
@@ -18,12 +19,12 @@ services:
       start_period: 30s
 
   redis:
-    image: redis:7-alpine
-    ports: ["59000:6379"]
+    image: ${IMAGE_PREFIX:-docker.1panel.live/}library/redis:7-alpine
+    ports: ["4444:6379"]
     command: redis-server --requirepass e65K4t8w2
 
   kafka:
-    image: apache/kafka:3.9.0
+    image: ${IMAGE_PREFIX:-docker.1panel.live/}apache/kafka:3.9.0
     ports: ["9092:9092"]
     environment:
       KAFKA_NODE_ID: 1
@@ -35,7 +36,7 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
   nacos:
-    image: nacos/nacos-server:v2.1.0-slim
+    image: ${IMAGE_PREFIX:-docker.1panel.live/}nacos/nacos-server:v2.1.0-slim
     container_name: nacos
     ports:
       - "18375:8848"
@@ -60,7 +61,7 @@ services:
       - mysql
 
   minio:
-    image: minio/minio:RELEASE.2025-02-18T16-25-55Z
+    image: ${IMAGE_PREFIX:-docker.1panel.live/}minio/minio:RELEASE.2025-02-18T16-25-55Z
     container_name: minio
     restart: always
     ports:
@@ -74,9 +75,9 @@ services:
       - "${USERPROFILE}/docker/minio/data:/data"
       - "${USERPROFILE}/docker/minio/config:/root/.minio"
     command: server /data --console-address ":9090" --address ":9000"
-
+#这个是一个一次性的容器  用来初始化canal的
   mysql-canal-init:
-    image: mysql:8.0
+    image: ${IMAGE_PREFIX:-docker.1panel.live/}library/mysql:8.0
     restart: "no"
     environment:
       MYSQL_PWD: "gK3T9n%q2M@j7Z4"
@@ -94,11 +95,11 @@ services:
         condition: service_healthy
 
   canal:
-    image: canal/canal-server:v1.1.7
+    image: ${IMAGE_PREFIX:-docker.1panel.live/}canal/canal-server:v1.1.7
     container_name: canal-server
     restart: always
     ports:
-      - "11111:11111"
+      - "1111:1111"
     environment:
       canal.instance.mysql.slaveId: "1234"
       canal.instance.master.address: mysql:3306

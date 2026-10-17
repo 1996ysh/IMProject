@@ -31,4 +31,18 @@ public class CommonConstant {
     public static final String BUCKET_NAME = "infinitechat";
     //过期时间
     public static final Integer PICTURE_EXPIRE_TIME = 3000;
+    //离线redis key
+    public static final String OFFLINE_KEY_REDIS = "user:offline:";
+    //session redis key
+    public static final String SESSION_KEY_REDIS = "session:";
+    //七天时间
+    public static final Long SEVEN_DAYS_MILLIS = 7L * 24 * 60 * 60 * 1000;
+    //默认限速
+    public static final Integer DEFAULT_LIMIT = 20;
+
+    public static final Long AI_ID = 111111111L;
+
+    public static final Integer USER_ROLE_NORMAL = 2;
+
+    public static final Integer SESSION_STATUS = 0;
 }

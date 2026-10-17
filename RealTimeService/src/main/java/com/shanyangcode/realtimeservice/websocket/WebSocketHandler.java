@@ -13,6 +13,8 @@ import io.netty.handler.timeout.IdleStateEvent;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.Date;
@@ -21,7 +23,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
     private final KafkaTemplate<String, String> kafkaTemplate;
-
+    private final StringRedisTemplate stringRedisTemplate;
     private final SnowflakeDynamicUtil snowflake;
     //3.收到websocket消息
     @Override
@@ -129,6 +131,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         super.handlerRemoved(ctx);
         System.out.println("Handler removed in channel pipeline");
     }
+
+    /**
+     * 这里的clear就相当于是处理离线channel的逻辑了
+     * @param channel
+     */
     public void clearChannel(Channel channel) {
         if (channel == null) {
             return;
@@ -139,6 +146,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         try {
             if (userId != null) {
                 ChannelManager.removeUserChannel(userId);
+                //这里log是以用户为准的
+                saveOfflineTime(userId);
             }
             ChannelManager.removeChannelUser(channel);
         } catch (Exception e) {
@@ -148,5 +157,17 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                 channel.close();
             }
         }
+    }
+    /**
+     * 记录用户离线时间到 Redis
+     * <p>
+     * Key: user:{userId}:offline
+     * Value: 时间戳
+     */
+    private void saveOfflineTime(String userId) {
+        String key = CommonConstant.OFFLINE_KEY_REDIS + userId;
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        stringRedisTemplate.opsForValue().set(key, timestamp);
+        log.debug("记录用户离线时间: userId={}, timestamp={}", userId, timestamp);
     }
 }
