@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 
+import com.shanyangcode.Utils.FormatDateUtil;
 import com.shanyangcode.common.constant.CommonConstant;
 import com.shanyangcode.common.exception.ThrowUtils;
 
@@ -13,10 +14,12 @@ import com.shanyangcode.common.result.ErrorCode;
 import com.shanyangcode.model.dto.MessageBody;
 import com.shanyangcode.model.dto.MessageRequest;
 import com.shanyangcode.model.vo.MessageResponse;
+import com.shanyangcode.offlinedataservice.client.AiServiceClient;
 import com.shanyangcode.offlinedataservice.client.UserServiceClient;
 import com.shanyangcode.offlinedataservice.mapper.MessageMapper;
 import com.shanyangcode.offlinedataservice.model.dto.HistoryMessageRequest;
 import com.shanyangcode.offlinedataservice.model.dto.OfflineMessageRequest;
+import com.shanyangcode.offlinedataservice.model.dto.SessionSummaryRequest;
 import com.shanyangcode.offlinedataservice.model.entity.Message;
 import com.shanyangcode.offlinedataservice.service.MessageService;
 
@@ -25,6 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Slf4j
@@ -38,6 +44,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Resource
     private UserServiceClient userServiceClient;
+
+    @Resource
+    private AiServiceClient aiServiceClient;
+
     @Override
     public void saveMessageToMySQL(MessageRequest messageRequest) {
         Message message = new Message();
@@ -114,6 +124,8 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         result.sort(Comparator.comparing(MessageResponse::getCreatedTime).reversed());
         return result;
     }
+
+
 
     /**
      * 从 Redis 获取指定时间之前的消息
@@ -236,5 +248,44 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         return responses;
     }
 
+    @Override
+    public String getSummary(SessionSummaryRequest sessionSummaryRequest) {
+        return   historyChatLog(sessionSummaryRequest.getSessionId(), sessionSummaryRequest.getHours());
 
+    }
+
+    public String historyChatLog(Long sessionId, Integer hours) {
+        Map<Long, String> userNickName = userServiceClient.getUserNickName(sessionId);
+
+        // 获取当前上海时间
+        ZoneId shanghai = ZoneId.of("Asia/Shanghai");
+        LocalDateTime nowShanghai = LocalDateTime.now(shanghai);
+        LocalDateTime threshold = nowShanghai.minusHours(hours);
+        // 格式化为 yyyy-MM-dd HH:mm:ss 字符串
+        String timeThresholdStr = threshold.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        //刷选符合条件的message
+        QueryWrapper<Message> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("session_id", sessionId).ge("created_time", timeThresholdStr);
+
+        List<Message> messages = this.list(queryWrapper);
+        StringBuilder chatLog = new StringBuilder();
+        //合并所有chatlog 最后发送给ai
+        for (Message message : messages) {
+            Long senderId = message.getSenderId();
+            String senderName = userNickName.get(senderId);
+            String timeStr = FormatDateUtil.formatDate(message.getCreatedTime());
+            chatLog.append("[").append(senderName).append("] ").append(timeStr).append("：").append(message.getContent()).append("\n");
+        }
+        //兜底吧
+        String result = "没有消息";
+
+        try {
+            //调用aiservice的rpc接口  todo 这个接口还没有实现
+            result = aiServiceClient.chatSummary(chatLog.toString().trim());
+        } catch (Exception e) {
+            throw new RuntimeException("调用会话总结失败");
+        }
+
+        return result;
+    }
 }

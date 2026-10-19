@@ -4,7 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication
+
+@SpringBootApplication(
+        scanBasePackages = {"com.shanyangcode.offlinedataservice", "com.shanyangcode.common"}
+)
 @EnableFeignClients(basePackages = "com.shanyangcode.offlinedataservice.client")
 public class OfflineDataServiceApplication {
 

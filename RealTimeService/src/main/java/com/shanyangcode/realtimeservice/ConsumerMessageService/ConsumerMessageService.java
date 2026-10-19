@@ -15,7 +15,6 @@ import com.shanyangcode.model.vo.MessageResponse;
 import com.shanyangcode.realtimeservice.client.AiServiceClient;
 import com.shanyangcode.realtimeservice.client.UserServiceClient;
 import com.shanyangcode.realtimeservice.websocket.ChannelManager;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
@@ -25,8 +24,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
-import java.net.http.WebSocket;
 import java.util.List;
 
 /**
@@ -50,6 +47,7 @@ public class ConsumerMessageService {
     @KafkaListener(topics = "message-topic", groupId = "infinite-chat-push-group")
     public void consume(String message) {
         System.out.println("收到消息：" + message);
+        //一个json格式的message字符串转化为messageRequest对象
         MessageRequest messageRequest = JSONUtil.toBean(message, MessageRequest.class);
         System.out.println("收到消息：" + messageRequest);
         if (messageRequest.getSessionType() == SessionTypeConstant.SIGNAL_TYPE) {

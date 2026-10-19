@@ -17,4 +17,6 @@ public interface AiChat {
 
     @SystemMessage(fromResource = "system-prompt/chat-bot.txt")
     Flux<String> streamChat(@MemoryId Long sessionId, @UserMessage String prompt);
+    // todo 这个接口还没有实现
+    String chatSummary(String historyLog);
 }

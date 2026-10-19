@@ -6,6 +6,7 @@ import com.shanyangcode.model.dto.MessageRequest;
 import com.shanyangcode.model.vo.MessageResponse;
 import com.shanyangcode.offlinedataservice.model.dto.HistoryMessageRequest;
 import com.shanyangcode.offlinedataservice.model.dto.OfflineMessageRequest;
+import com.shanyangcode.offlinedataservice.model.dto.SessionSummaryRequest;
 import com.shanyangcode.offlinedataservice.model.entity.Message;
 
 import java.util.List;
@@ -29,4 +30,11 @@ public interface MessageService extends IService<Message> {
      * @return
      */
     List<MessageResponse> getHistoryMessages(HistoryMessageRequest request);
+
+    /**
+     * 获取总结
+     * @param sessionSummaryRequest
+     * @return
+     */
+    String getSummary(SessionSummaryRequest sessionSummaryRequest);
 }
